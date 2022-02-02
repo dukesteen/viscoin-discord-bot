@@ -2,6 +2,7 @@
 using Viscoin.Bot.Features.Games.Blackjack;
 using Viscoin.Bot.Features.Games.Dice;
 using Viscoin.Bot.Features.Games.Mines;
+using Viscoin.Bot.Features.Games.Woordle;
 
 namespace Viscoin.Bot.Features.Games;
 
@@ -12,7 +13,8 @@ public static class ServiceProviderExtensions
         return services
             .AddSingleton<DiceService>()
             .AddSingleton<MinesService>()
-            .AddSingleton<BlackjackService>();
+            .AddSingleton<BlackjackService>()
+            .AddSingleton<WoordleService>();
 
     }
 }
