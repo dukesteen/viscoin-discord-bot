@@ -51,4 +51,5 @@ public static class CacheKeys
 {
     public static object LockedCommands = new ();
     public static object DropKey = new();
+    public static object ActiveWoordleUsers = new();
 }

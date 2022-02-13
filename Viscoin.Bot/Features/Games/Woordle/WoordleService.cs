@@ -6,42 +6,40 @@ public class WoordleService
 {
     public WoordleChoice GetChoiceFromString(string guess, string correctWord)
     {
-        var charList = new List<WoordleCharacter>();
+        var charArray = new WoordleCharacter[5];
 
         var guessChars = guess.ToCharArray();
         var correctWordChars = correctWord.ToCharArray();
 
-        for (int i = 0; i < guessChars.Length; i++)
+        var temp = correctWordChars;
+
+        for (int i = 0; i < 5; i++)
         {
             if (correctWordChars[i] == guessChars[i])
             {
-                charList.Add(new WoordleCharacter(guessChars[i], WoordleStatus.RightPosition));
-            } 
-            else if (correctWordChars.Contains(guessChars[i]))
-            {
-                charList.Add(new WoordleCharacter(guessChars[i], WoordleStatus.WrongPosition));
-            } 
-            else
-            {
-                charList.Add(new WoordleCharacter(guessChars[i], WoordleStatus.WrongCharacter));
-            }
-        }
-        
-        for (int i = 0; i < guessChars.Length; i++)
-        {
-            if (charList[i].Status == WoordleStatus.WrongPosition)
-            {
-                if (charList.Count(x => x.Character == guessChars[i]) > 1)
-                {
-                    if (correctWord.Count(x => x == guessChars[i]) == 1)
-                    {
-                        charList[i].Status = WoordleStatus.WrongCharacter;
-                    }
-                }
+                charArray[i] = new WoordleCharacter(guessChars[i], WoordleStatus.RightPosition);
+                temp[i] = '_';
             }
         }
 
-        var choice = new WoordleChoice(guess, charList);
+        for (int i = 0; i < 5; i++)
+        {
+            var letter = temp[i];
+
+            if (letter == '_')
+            {
+            } else if (temp.Contains(guessChars[i]))
+            {
+                charArray[i] = new WoordleCharacter(guessChars[i], WoordleStatus.WrongPosition);
+            }
+            else
+            {
+                charArray[i] = new WoordleCharacter(guessChars[i], WoordleStatus.WrongCharacter);
+            }
+            
+        }
+
+        var choice = new WoordleChoice(guess, charArray.ToList());
         
         if (guess.ToLower() == correctWord)
         {

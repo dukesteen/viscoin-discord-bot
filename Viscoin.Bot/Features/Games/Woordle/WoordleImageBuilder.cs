@@ -10,15 +10,13 @@ public class WoordleImageBuilder : IDisposable
     private SKCanvas _canvas;
     private SKData _data = null!;
 
-    private int _currentRow = 0;
+    private int _currentRow;
 
     public SKImageInfo ImageInfo => _imageInfo;
     public SKSurface Surface => _surface;
 
     private static readonly SKColor BgColor = SKColor.Parse("121213");
     private static readonly SKColor WrongCharacterColor = SKColor.Parse("3A3A3C");
-    private static readonly SKColor WrongPositionColor = SKColor.Parse("B59F3B");
-    private static readonly SKColor RightPositionColor = SKColor.Parse("538D4E");
 
     private static readonly int TileSize = 64;
     private static readonly int TileMarginSides = 20;
@@ -99,8 +97,6 @@ public class WoordleImageBuilder : IDisposable
                     paint.StrokeWidth = 4;
                     paint.Style = SKPaintStyle.Fill;
 
-                    var textStartY = (TileSize - textBounds.Height) / 2;
-                    
                     _canvas.DrawText(character.Character.ToString().ToUpper(), newX + TileSize / 2, newY + TileSize - 15, paint);
                     
                     counter++;

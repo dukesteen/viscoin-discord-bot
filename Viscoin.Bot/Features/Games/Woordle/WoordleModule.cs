@@ -2,9 +2,9 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
+using Microsoft.Extensions.Caching.Memory;
 using SkiaSharp;
 using Viscoin.Bot.Features.Games.Woordle.Types;
-using Viscoin.Bot.Features.Preconditions.Cooldown;
 using Viscoin.Bot.Features.Preconditions.GamblingChannel;
 using Viscoin.Bot.Features.User;
 using Viscoin.Bot.Shared;
@@ -18,22 +18,39 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
     private readonly WoordleService _woordleService;
     private readonly UserService _userService;
     private readonly Random _random;
+    private readonly IMemoryCache _cache;
 
-    public WoordleModule(InteractiveService interactiveService, WoordleService woordleService, UserService userService, Random random)
+    public WoordleModule(InteractiveService interactiveService, WoordleService woordleService, UserService userService, Random random, IMemoryCache cache)
     {
         _interactiveService = interactiveService;
         _woordleService = woordleService;
         _userService = userService;
         _random = random;
+        _cache = cache;
     }
 
     [SlashCommand("woordle", "raad de woordle")]
-    [Cooldown(seconds: 5)]
     [RequireGamblingChannel]
     public async Task StartWoordle()
     {
         await DeferAsync();
         var user = await _userService.GetOrCreateUser(Context.User);
+
+        if (_cache.TryGetValue($"wordle-{user.Id}", out bool activeGame))
+        {
+            if (activeGame)
+            {
+                await FollowupAsync(embed: EmbedUtilities.CreateErrorEmbed("Je hebt al een actieve woordle game."));
+                return;
+            }
+
+            _cache.Set($"wordle-{user.Id}", true);
+        }
+        else
+        {
+            _cache.Set($"wordle-{user.Id}", true);
+        }
+        
         var pickedWord = WoordleStaticData.PuzzleWords.ElementAt(_random.Next(WoordleStaticData.PuzzleWords.Count));
         var game = new WoordleGame(user, pickedWord);
         
@@ -51,11 +68,13 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
 
         while (game.Choices.Count < 6)
         {
-            var result = await _interactiveService.NextMessageAsync(x => x.Content.Length == 5 && x.Author.Id == Context.User.Id && x.Channel.Id == Context.Channel.Id, timeout: TimeSpan.FromMinutes(3));
+            var result = await _interactiveService.NextMessageAsync(x => x.Content.Length == 5 && x.Author.Id == Context.User.Id && x.Channel.Id == Context.Channel.Id, timeout: TimeSpan.FromMinutes(10));
 
             if (result.IsTimeout)
             {
                 await FollowupAsync(Context.User.Mention, embed: EmbedUtilities.CreateErrorEmbed("Je hebt niet optijd antwoord gegeven"));
+                _cache.Set($"wordle-{user.Id}", false);
+                return;
             }
             
             if (result.Value == null)
@@ -103,6 +122,8 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
                 await FollowupAsync(Context.User.Mention, embed: embedBuilder.Build());
 
                 await _userService.AddCoinsAsync(user, coinAmount);
+
+                _cache.Set($"wordle-{user.Id}", false);
                 
                 return;
             }
@@ -121,6 +142,8 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
                     .WithDescription($"Typ een woord in de chat om te raden")
                     .WithImageUrl(imageUrl);
             }
+            
+            _cache.Set($"wordle-{user.Id}", false);
             
             await FollowupAsync(Context.User.Mention, embed: embedBuilder.Build());
         }

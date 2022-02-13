@@ -37,6 +37,7 @@ public class DiscordEventListener
         _client.Ready += OnReadyAsync;
         _client.MessageReceived += OnMessageReceivedAsync;
         _client.InteractionCreated += OnInteractionCreatedAsync;
+
         _commands.SlashCommandExecuted += OnSlashCommandExecutedAsync;
 
         return Task.CompletedTask;

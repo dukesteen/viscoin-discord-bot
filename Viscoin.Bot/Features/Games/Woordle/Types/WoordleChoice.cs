@@ -39,6 +39,12 @@ public class WoordleCharacter
     
     public char Character { get; set; }
     public WoordleStatus Status { get; set; }
+
+    private string _email;
+    public string Email {
+        get => _email;
+        set => _email = value;
+    }
 }
 
 public enum WoordleStatus
