@@ -1,5 +1,5 @@
-﻿using Discord.Interactions;
-using Discord.WebSocket;
+﻿using Discord;
+using Discord.Interactions;
 
 namespace Viscoin.Bot.Features.Games.Roulette;
 

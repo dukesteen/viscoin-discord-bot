@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using Viscoin.Bot.Infrastructure.Config;
 using Viscoin.Bot.Infrastructure.Messages;
+using Viscoin.Bot.Infrastructure.TypeConverters;
 using Viscoin.Bot.Shared;
 using Viscoin.Bot.Utilities;
 
@@ -93,7 +94,8 @@ public class InteractionCommandHandler : INotificationHandler<InteractionCreated
 
     public async Task InitializeAsync()
     {
+        _commands.AddTypeConverter<TimeSpan>(new TimespanTypeConverter());
+        
         await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
     }
-
 }

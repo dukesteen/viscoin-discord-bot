@@ -1,7 +1,10 @@
-﻿using Discord;
+﻿using System.Globalization;
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,6 +73,13 @@ public class Bot
             .Enrich.FromLogContext()
             .WriteTo.Console()
             .CreateLogger();
+
+        LiveCharts.Configure(settings => settings
+            .AddDarkTheme()
+            .AddSkiaSharp()
+            .AddDefaultMappers());
+        
+        CultureInfo.CurrentUICulture = new CultureInfo( "nl-NL", false );
         
         await using var services = ConfigureServices();
         

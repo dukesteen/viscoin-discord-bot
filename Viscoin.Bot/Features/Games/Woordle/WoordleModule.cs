@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.WebSocket;
 using Fergun.Interactive;
 using Microsoft.Extensions.Caching.Memory;
 using SkiaSharp;
@@ -57,7 +56,7 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
         var image = new WoordleImageBuilder(new SKImageInfo(400, 474));
         image.DrawRows(game.Choices);
 
-        var imageUrl = await UploadImageGetUrlAsync(Context, image.BuildStream());
+        var imageUrl = await DiscordUtilities.UploadImageGetUrlAsync(Context, image.BuildStream());
         
         var embedBuilder = new EmbedBuilder()
             .WithTitle("Woordle")
@@ -108,7 +107,7 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
             image = new WoordleImageBuilder(new SKImageInfo(400, 474));
             image.DrawRows(game.Choices);
 
-            imageUrl = await UploadImageGetUrlAsync(Context, image.BuildStream());
+            imageUrl = await DiscordUtilities.UploadImageGetUrlAsync(Context, image.BuildStream());
 
             if (choice.Correct)
             {
@@ -147,12 +146,5 @@ public class WoordleModule : InteractionModuleBase<SocketInteractionContext>
             
             await FollowupAsync(Context.User.Mention, embed: embedBuilder.Build());
         }
-    }
-    
-    private async Task<string> UploadImageGetUrlAsync(SocketInteractionContext ctx, Stream imageAsStream)
-    {
-        var channel = await ctx.Client.GetChannelAsync(AppConstants.BotDepositChannel) as ISocketMessageChannel;
-        var message = await channel?.SendFileAsync(imageAsStream, $"{Guid.NewGuid():N}.png")!;
-        return message.Attachments.First().Url;
     }
 }
