@@ -61,7 +61,7 @@ public class Bot
 
     public static async Task Main()
     {
-        await new Bot().RunAsync();
+        new Bot().RunAsync().GetAwaiter().GetResult();
     }
 
     private async Task RunAsync()

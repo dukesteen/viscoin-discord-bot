@@ -36,7 +36,7 @@ public class UserModule : InteractionModuleBase<SocketInteractionContext>
     }
     
     [SlashCommand("pay", "stuur coins naar iemand anders")]
-    public async Task Pay(IUser to, int amount)
+    public async Task Pay(IUser to, [MinValue(1)] int amount)
     {
         var fromUser = await _userService.GetOrCreateUser(Context.User);
         var toUser = await _userService.GetOrCreateUser(to);

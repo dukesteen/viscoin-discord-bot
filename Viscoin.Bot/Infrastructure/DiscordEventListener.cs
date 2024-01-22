@@ -38,6 +38,18 @@ public class DiscordEventListener
         _client.MessageReceived += OnMessageReceivedAsync;
         _client.InteractionCreated += OnInteractionCreatedAsync;
 
+        _client.JoinedGuild += (guild) =>
+        {
+            var channel = guild.Channels.FirstOrDefault(x => x.Name == "general");
+
+            if (channel is SocketTextChannel textChannel)
+            {
+                textChannel.SendMessageAsync("Some message");
+            }
+
+            return null;
+        };
+
         _commands.SlashCommandExecuted += OnSlashCommandExecutedAsync;
 
         return Task.CompletedTask;

@@ -57,10 +57,10 @@ public class InteractionCommandHandler : INotificationHandler<InteractionCreated
         }
     }
     
-    public Task Handle(SlashCommandExecutedNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(SlashCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
         if (notification.Result.IsSuccess)
-            return Task.CompletedTask;
+            return;
 
         EmbedBuilder embedBuilder;
         
@@ -78,9 +78,7 @@ public class InteractionCommandHandler : INotificationHandler<InteractionCreated
                 break;
         }
         
-        notification.Context.Interaction.RespondAsync(embed: embedBuilder.Build(), ephemeral: true);
-        
-        return Task.CompletedTask;
+        await notification.Context.Interaction.RespondAsync(embed: embedBuilder.Build(), ephemeral: true);
     }
 
     public async Task Handle(ReadyNotification notification, CancellationToken cancellationToken)

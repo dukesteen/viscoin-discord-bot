@@ -59,9 +59,7 @@ public class ShopModule : InteractionModuleBase<SocketInteractionContext>
                 .WithTitle($"Perk shop")
                 .WithDescription(builder.ToString())
                 .WithFooter($"Pagina {page} van {(int)Math.Ceiling((double)(allPerks.Count / 5)) + 1}");
-
             
-
             await RespondAsync(embed: embedBuilder.Build(), components: components.Build());
         }
 
