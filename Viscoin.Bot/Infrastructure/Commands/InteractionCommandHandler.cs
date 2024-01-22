@@ -86,7 +86,9 @@ public class InteractionCommandHandler : INotificationHandler<InteractionCreated
 #if DEBUG
         await _commands.RegisterCommandsToGuildAsync(ViscoinConfig.Configuration.TestGuild);
 #else
-        await _commands.RegisterCommandsToGuildAsync(ViscoinConfig.Configuration.ViscordGuild);
+        foreach(var guild in ViscoinConfig.Configuration.ViscordGuilds) {
+            await _commands.RegisterCommandsToGuildAsync(guild);
+        }
 #endif
     }
 

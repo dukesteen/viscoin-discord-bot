@@ -42,13 +42,13 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
         var componentBuilder = GetMineFieldComponentBuilder(game.Minefield, game.Id, false);
         var embedBuilder = GetMinesEmbedBuilder();
 
-        var message = await FollowupAsync(embed: embedBuilder.Build(), components: componentBuilder.Build());
+        var message = await FollowupAsync(embed: embedBuilder.Build(), components: componentBuilder.Build(), ephemeral: true);
 
         game.GameMessage = message;
 
         var cashoutComponentBuilder = GetCashoutComponentBuilder(game);
 
-        message = await Context.Channel.SendMessageAsync("‎", components: cashoutComponentBuilder.Build());
+        message = await Context.Channel.SendMessageAsync(components: cashoutComponentBuilder.Build());
 
         game.CashoutMessage = message;
 
@@ -101,6 +101,8 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
             embedBuilder = new EmbedBuilder()
                 .WithTitle("Kaboom")
                 .WithDescription($"Je hebt een bom geraakt en {game.Amount} {AppConstants.ViscoinEmote} verloren");
+
+            game.Minefield[y][x].DeathMine = true;
             
             for (int i = 0; i < game.Minefield.Length; i++)
             {
@@ -143,28 +145,28 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
         });
     }
 
-    [ComponentInteraction("mines:*:cashout")]
+    [ComponentInteraction("mines:cashout:*")]
     public async Task CashoutMinesGame(string gameId)
     {
+        await DeferAsync();
         var game = _mines.GetMinesGameById(gameId);
 
         if (game == null)
         {
-            await game?.CashoutMessage.DeleteAsync()!;
-            await RespondAsync(embed: EmbedUtilities.CreateErrorEmbed("Deze game bestaat niet meer"));
+            await FollowupAsync(embed: EmbedUtilities.CreateErrorEmbed("Deze game bestaat niet meer"));
             return;
         }
         
         if (Context.User.Id != game.Player.Id)
         {
-            await RespondAsync(embed: EmbedUtilities.CreateErrorEmbed("Dit is niet jouw game"), ephemeral: true);
+            await FollowupAsync(embed: EmbedUtilities.CreateErrorEmbed("Dit is niet jouw game"), ephemeral: true);
             return;
         }
 
         if (game.Status == MinesGameStatus.Dead)
         {
             await game.CashoutMessage.DeleteAsync()!;
-            await RespondAsync(embed: EmbedUtilities.CreateErrorEmbed("Er is een mine geraakt in deze game en je kan niet meer cashen"), ephemeral: true);
+            await FollowupAsync(embed: EmbedUtilities.CreateErrorEmbed("Er is een mine geraakt in deze game en je kan niet meer cashen"), ephemeral: true);
             return;
         }
 
@@ -182,14 +184,12 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
         var embedBuilder = new EmbedBuilder()
             .WithTitle("Je hebt gecashed!")
             .WithDescription(
-                $"Er zijn {Math.Round(game.Amount * game.CurrentMultiplier - game.Amount, 0)} {AppConstants.ViscoinEmote} toegevoegd aan je account");
+                $"Je hebt {Math.Round(game.Amount * game.CurrentMultiplier - game.Amount, 0)} {AppConstants.ViscoinEmote} gewonnen.");
 
         var user = await _userService.GetOrCreateUser(Context.User);
         await _userService.AddCoinsAsync(user, (int)Math.Round(game.Amount * game.CurrentMultiplier));
 
         _mines.RemoveMinesGame(game);
-        
-        await DeferAsync();
 
         await game.GameMessage.ModifyAsync(messageProperties =>
         {
@@ -212,15 +212,14 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
                 var button = new ButtonBuilder
                 {
                     CustomId = $"mines:{gameId}:{i}/{j}",
-                    Label = $" ",
                     Style = ButtonStyle.Primary,
-                    IsDisabled = dead
+                    IsDisabled = dead,
                 };
 
                 if (mine.Type == MineType.Bomb && mine.Status == MineStatus.Discovered)
                 {
                     button.Style = ButtonStyle.Danger;
-                    button.Label = "💣";
+                    button.Emote = mine.DeathMine ? Emoji.Parse(":boom:") : Emoji.Parse(":bomb:");
                 } else if(mine.Type == MineType.Default && mine.Status == MineStatus.Discovered)
                 {
                     button.Style = ButtonStyle.Success;
@@ -228,10 +227,15 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
                     {
                         button.Label = $"{mineField[i][j].Multiplier}x";
                     }
+                    else
+                    {
+                        button.Emote = Emote.Parse("<:transparent:1199084945709203477>");
+                    }
                 }
                 else
                 {
                     button.Style = ButtonStyle.Secondary;
+                    button.Emote = Emote.Parse("<:transparent:1199084945709203477>");
                 }
 
                 componentBuilder.WithButton(button, i);
@@ -251,6 +255,6 @@ public class MinesModule : InteractionModuleBase<SocketInteractionContext>
     private ComponentBuilder GetCashoutComponentBuilder(MinesGame minesGame)
     {
         return new ComponentBuilder()
-            .WithButton($"Cash out", $"mines:{minesGame.Id}:cashout");
+            .WithButton($"Cash out", $"mines:cashout:{minesGame.Id}");
     }
 }

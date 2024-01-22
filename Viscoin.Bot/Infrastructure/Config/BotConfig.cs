@@ -6,5 +6,5 @@ public class BotConfig
     public string ApplicationDbContext { get; init; } = null!;
     public string HangfireDbContext { get; init; } = null!;
     public ulong TestGuild { get; init; }
-    public ulong ViscordGuild { get; init; }
+    public ulong[] ViscordGuilds { get; init; }
 }

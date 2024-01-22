@@ -4,6 +4,7 @@ public class Mine
 {
     public MineStatus Status { get; set; }
     public MineType Type { get; set; }
+    public bool DeathMine { get; set; }
 
     private double _multiplier;
     public double? Multiplier
